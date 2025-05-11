@@ -126,8 +126,10 @@ function JsonNode({ data, name, isRoot = false, expandAll = false }: JsonNodePro
           <div className="ml-4 border-l-2 border-muted-foreground/20 pl-2">
             {data.map((item: any, index: number) => (
               <div key={index} className="my-1">
-                <JsonNode data={item} name={index.toString()} expandAll={expandAll} />
-                {index < data.length - 1 && <span className="text-muted-foreground">,</span>}
+                <div className="inline-flex items-center">
+                  <JsonNode data={item} name={index.toString()} expandAll={expandAll} />
+                  {index < data.length - 1 && <span className="text-muted-foreground">,</span>}
+                </div>
               </div>
             ))}
             <span className="text-purple-600">]</span>
@@ -164,10 +166,12 @@ function JsonNode({ data, name, isRoot = false, expandAll = false }: JsonNodePro
         <div className="ml-4 border-l-2 border-muted-foreground/20 pl-2">
           {keys.map((key, index) => (
             <div key={key} className="my-1">
-              <span className="text-red-600">"{key}"</span>
-              <span className="text-muted-foreground mr-1">: </span>
-              <JsonNode data={data[key]} name={key} expandAll={expandAll} />
-              {index < keys.length - 1 && <span className="text-muted-foreground">,</span>}
+              <div className="inline-flex items-center">
+                <span className="text-red-600">"{key}"</span>
+                <span className="text-muted-foreground mr-1">: </span>
+                <JsonNode data={data[key]} name={key} expandAll={expandAll} />
+                {index < keys.length - 1 && <span className="text-muted-foreground">,</span>}
+              </div>
             </div>
           ))}
           <span className="text-purple-600">{"}"}</span>
