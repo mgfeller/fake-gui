@@ -113,7 +113,7 @@ function JsonNode({ data, name, isRoot = false, expandAll = false }: JsonNodePro
           ) : (
             <ChevronRight className="h-3 w-3 mr-1 text-muted-foreground" />
           )}
-          <span className={cn("text-purple-600", !isRoot && "mr-1")}>{isRoot ? "" : "["}</span>
+          <span className="text-purple-600 mr-1">[</span>
           {!isExpanded && (
             <span className="text-muted-foreground text-xs">
               {data.length} {data.length === 1 ? "item" : "items"}
@@ -153,7 +153,7 @@ function JsonNode({ data, name, isRoot = false, expandAll = false }: JsonNodePro
         ) : (
           <ChevronRight className="h-3 w-3 mr-1 text-muted-foreground" />
         )}
-        <span className={cn("text-purple-600", !isRoot && "mr-1")}>{isRoot ? "" : "{"}</span>
+        <span className="text-purple-600 mr-1">{"{"}</span>
         {!isExpanded && (
           <span className="text-muted-foreground text-xs">
             {keys.length} {keys.length === 1 ? "property" : "properties"}
