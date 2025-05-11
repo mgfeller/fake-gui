@@ -6,9 +6,9 @@ import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ChevronDown, ChevronRight, Copy, Eye, EyeOff } from "lucide-react"
-import { cn } from "@/lib/utils"
 
 interface JsonViewerProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any
 }
 
@@ -59,12 +59,14 @@ export function JsonViewer({ data }: JsonViewerProps) {
 }
 
 interface JsonNodeProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any
   name: string
   isRoot?: boolean
   expandAll?: boolean
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function JsonNode({ data, name, isRoot = false, expandAll = false }: JsonNodeProps) {
   // Only root node can be expanded by default, all others start collapsed
   const [isExpanded, setIsExpanded] = useState(isRoot)
@@ -97,7 +99,7 @@ function JsonNode({ data, name, isRoot = false, expandAll = false }: JsonNodePro
   }
 
   if (typeof data === "string") {
-    return <span className="text-green-600">"{data}"</span>
+    return <span className="text-green-600">&quot;{data}&quot;</span>
   }
 
   if (Array.isArray(data)) {
@@ -124,6 +126,7 @@ function JsonNode({ data, name, isRoot = false, expandAll = false }: JsonNodePro
 
         {isExpanded && (
           <div className="ml-4 border-l-2 border-muted-foreground/20 pl-2">
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             {data.map((item: any, index: number) => (
               <div key={index} className="my-1">
                 <div className="inline-flex items-center">
@@ -167,7 +170,7 @@ function JsonNode({ data, name, isRoot = false, expandAll = false }: JsonNodePro
           {keys.map((key, index) => (
             <div key={key} className="my-1">
               <div className="inline-flex items-center">
-                <span className="text-red-600">"{key}"</span>
+                <span className="text-red-600">&quot;{key}&quot;</span>
                 <span className="text-muted-foreground mr-1">: </span>
                 <JsonNode data={data[key]} name={key} expandAll={expandAll} />
                 {index < keys.length - 1 && <span className="text-muted-foreground">,</span>}

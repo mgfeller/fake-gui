@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export function ApiExplorer() {
   const [endpoint, setEndpoint] = useState("https://jsonplaceholder.typicode.com/todos/1")
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
