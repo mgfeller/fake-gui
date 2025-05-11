@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ChevronDown, ChevronRight, Copy, Eye, EyeOff } from "lucide-react"
@@ -17,6 +17,8 @@ export function JsonViewer({ data }: JsonViewerProps) {
   const [expandAll, setExpandAll] = useState(false)
   const formattedJson = JSON.stringify(data, null, 2)
 
+  console.log('JsonViewer rendered with expandAll:', expandAll)
+
   const copyToClipboard = () => {
     navigator.clipboard.writeText(formattedJson)
     setCopied(true)
@@ -24,6 +26,7 @@ export function JsonViewer({ data }: JsonViewerProps) {
   }
 
   const toggleExpandAll = () => {
+    console.log('toggleExpandAll called, current state:', expandAll)
     setExpandAll(!expandAll)
   }
 
@@ -63,16 +66,22 @@ interface JsonNodeProps {
 }
 
 function JsonNode({ data, name, isRoot = false, expandAll = false }: JsonNodeProps) {
-  const [isExpanded, setIsExpanded] = useState(isRoot || expandAll)
+  // Only root node can be expanded by default, all others start collapsed
+  const [isExpanded, setIsExpanded] = useState(isRoot)
 
   // Update expansion state when expandAll changes
-  useState(() => {
-    setIsExpanded(isRoot || expandAll)
-  })
+  useEffect(() => {
+    // If expandAll is false, collapse all except root
+    // If expandAll is true, expand all
+    setIsExpanded(expandAll || isRoot)
+  }, [expandAll, isRoot])
 
   const toggleExpand = (e: React.MouseEvent) => {
     e.stopPropagation()
-    setIsExpanded(!isExpanded)
+    // Only allow manual toggle if expandAll is false
+    if (!expandAll) {
+      setIsExpanded(!isExpanded)
+    }
   }
 
   if (data === null) {
@@ -131,7 +140,7 @@ function JsonNode({ data, name, isRoot = false, expandAll = false }: JsonNodePro
   // Object
   const keys = Object.keys(data)
   if (keys.length === 0) {
-    return <span>{{}}</span>
+    return <span>{"{}"}</span>
   }
 
   return (
