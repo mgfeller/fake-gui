@@ -23,7 +23,7 @@ jobs:
       
       - name: Generate SBOM
         run: |
-          npx @cyclonedx/cdxgen -t spdx -o bom.spdx.json
+          npx @cyclonedx/cdxgen -t npm -o bom.json --json-pretty
       
       - name: Run linter
         run: npm run lint
@@ -48,7 +48,7 @@ jobs:
       
       - name: Generate SBOM
         run: |
-          npx @cyclonedx/cdxgen -t spdx -o bom.spdx.json
+          npx @cyclonedx/cdxgen -t npm -o bom.json --json-pretty
       
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -68,5 +68,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: sbom
-          path: bom.spdx.json
+          path: bom.json
           retention-days: 90 
