@@ -21,6 +21,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
       
+      - name: Generate SBOM
+        run: |
+          npx @cyclonedx/cdxgen -t spdx -o bom.spdx.json
+      
       - name: Run linter
         run: npm run lint
       
@@ -32,6 +36,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Generate SBOM
+        run: |
+          npx @cyclonedx/cdxgen -t spdx -o bom.spdx.json
       
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -45,4 +62,11 @@ jobs:
             fake-gui:latest
             fake-gui:${{ github.sha }}
           cache-from: type=gha
-          cache-to: type=gha,mode=max 
+          cache-to: type=gha,mode=max
+      
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: bom.spdx.json
+          retention-days: 90 
