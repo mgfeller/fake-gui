@@ -5,6 +5,7 @@ export async function fetchApiData(endpoint: string, method: 'GET' | 'POST' = 'G
     // Validate the URL
     new URL(endpoint)
 
+    console.log(`\n[Request] ${method} ${endpoint}`)
     const response = await fetch(endpoint, {
       method,
       headers: {
@@ -25,11 +26,16 @@ export async function fetchApiData(endpoint: string, method: 'GET' | 'POST' = 'G
       try {
         data = await response.json()
       } catch (e) {
-        data = null
+        data = { error: e instanceof Error ? e.message : 'Failed to parse JSON response' }
       }
     } else {
       data = null
     }
+
+    console.log(`[Response] Status: ${response.status}`)
+    console.log('[Response] Headers:', headers)
+    console.log('[Response] Body:', data)
+    console.log('---')
 
     return {
       data,
@@ -37,6 +43,7 @@ export async function fetchApiData(endpoint: string, method: 'GET' | 'POST' = 'G
       headers
     }
   } catch (error) {
+    console.error('[Error]', error)
     if (error instanceof TypeError && error.message.includes("URL")) {
       throw new Error("Invalid URL. Please enter a valid endpoint.")
     }
