@@ -14,6 +14,9 @@ export function ApiExplorer() {
   const [baseUrl, setBaseUrl] = useState("http://localhost:8080")
   const [infoPath, setInfoPath] = useState("/info")
   const [healthcheckPath, setHealthcheckPath] = useState("/healthcheck")
+  const [quotePath, setQuotePath] = useState("/quotes/rand")
+  const [quotesPath, setQuotesPath] = useState("/quotes")
+  const [unauthorizedPath, setUnauthorizedPath] = useState("/unauthorized")
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [data, setData] = useState<any>(null)
   const [status, setStatus] = useState<number | null>(null)
@@ -21,7 +24,7 @@ export function ApiExplorer() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const handleRequest = async (path: string) => {
+  const handleRequest = async (path: string, method: 'GET' | 'POST' = 'GET') => {
     setLoading(true)
     setError(null)
     setStatus(null)
@@ -29,7 +32,7 @@ export function ApiExplorer() {
 
     try {
       const fullUrl = new URL(path, baseUrl).toString()
-      const result = await fetchApiData(fullUrl)
+      const result = await fetchApiData(fullUrl, method)
       setData(result.data)
       setStatus(result.status)
       setHeaders(result.headers)
@@ -43,8 +46,7 @@ export function ApiExplorer() {
     }
   }
 
-  const handleInfoSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleInfoSubmit = async () => {
     await handleRequest(infoPath)
   }
 
@@ -52,11 +54,23 @@ export function ApiExplorer() {
     await handleRequest(healthcheckPath)
   }
 
+  const handleUnauthorized = async () => {
+    await handleRequest(unauthorizedPath)
+  }
+
+  const handleRandomQuote = async () => {
+    await handleRequest(quotePath, 'POST')
+  }
+
+  const handleGetAllQuotes = async () => {
+    await handleRequest(quotesPath)
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 max-w-2xl">
         <div className="flex items-center gap-3">
-          <label htmlFor="baseUrl" className="text-sm font-medium whitespace-nowrap w-24">
+          <label htmlFor="baseUrl" className="text-sm font-medium whitespace-nowrap w-36">
             Base URL:
           </label>
           <Input
@@ -70,7 +84,7 @@ export function ApiExplorer() {
           />
         </div>
         <div className="flex gap-3 items-center">
-          <Button type="submit" onClick={handleInfoSubmit} disabled={loading} className="whitespace-nowrap w-24">
+          <Button type="submit" onClick={handleInfoSubmit} disabled={loading} className="whitespace-nowrap w-36">
             {loading ? "Loading..." : "Info"}
           </Button>
           <Input
@@ -83,7 +97,7 @@ export function ApiExplorer() {
           />
         </div>
         <div className="flex gap-3 items-center">
-          <Button onClick={handleHealthcheck} disabled={loading} className="whitespace-nowrap w-24">
+          <Button onClick={handleHealthcheck} disabled={loading} className="whitespace-nowrap w-36">
             {loading ? "Loading..." : "Healthcheck"}
           </Button>
           <Input
@@ -91,6 +105,45 @@ export function ApiExplorer() {
             value={healthcheckPath}
             onChange={(e) => setHealthcheckPath(e.target.value)}
             placeholder="Enter healthcheck endpoint path"
+            className="w-1/2"
+            required
+          />
+        </div>
+        <div className="flex gap-3 items-center">
+          <Button onClick={handleUnauthorized} disabled={loading} className="whitespace-nowrap w-36">
+            {loading ? "Loading..." : "Unauthorized"}
+          </Button>
+          <Input
+            type="text"
+            value={unauthorizedPath}
+            onChange={(e) => setUnauthorizedPath(e.target.value)}
+            placeholder="Enter unauthorized endpoint path"
+            className="w-1/2"
+            required
+          />
+        </div>
+        <div className="flex gap-3 items-center">
+          <Button onClick={handleRandomQuote} disabled={loading} className="whitespace-nowrap w-36">
+            {loading ? "Loading..." : "Add random quote"}
+          </Button>
+          <Input
+            type="text"
+            value={quotePath}
+            onChange={(e) => setQuotePath(e.target.value)}
+            placeholder="Enter quote endpoint path"
+            className="w-1/2"
+            required
+          />
+        </div>
+        <div className="flex gap-3 items-center">
+          <Button onClick={handleGetAllQuotes} disabled={loading} className="whitespace-nowrap w-36">
+            {loading ? "Loading..." : "Get all quotes"}
+          </Button>
+          <Input
+            type="text"
+            value={quotesPath}
+            onChange={(e) => setQuotesPath(e.target.value)}
+            placeholder="Enter quotes endpoint path"
             className="w-1/2"
             required
           />
