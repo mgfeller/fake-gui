@@ -5,7 +5,6 @@ export async function fetchApiData(endpoint: string, method: 'GET' | 'POST' = 'G
     // Validate the URL
     new URL(endpoint)
 
-    console.log(`\n[Request] ${method} ${endpoint}`)
     const response = await fetch(endpoint, {
       method,
       headers: {
@@ -32,10 +31,21 @@ export async function fetchApiData(endpoint: string, method: 'GET' | 'POST' = 'G
       data = null
     }
 
-    console.log(`[Response] Status: ${response.status}`)
-    console.log('[Response] Headers:', headers)
-    console.log('[Response] Body:', data)
-    console.log('---')
+    console.log(JSON.stringify({
+      timestamp: new Date().toISOString(),
+      request: {
+        url: endpoint,
+        method: method,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      },
+      response: {
+        status: response.status,
+        headers: headers,
+        body: data
+      }
+    }, null, 2))
 
     return {
       data,
