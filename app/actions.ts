@@ -6,12 +6,19 @@ export async function fetchApiData(endpoint: string) {
     new URL(endpoint)
 
     const response = await fetch(endpoint)
+    const data = await response.json()
+    
+    // Convert headers to a plain object
+    const headers: Record<string, string> = {}
+    response.headers.forEach((value, key) => {
+      headers[key] = value
+    })
 
-    if (!response.ok) {
-      throw new Error(`API request failed with status: ${response.status}`)
+    return {
+      data,
+      status: response.status,
+      headers
     }
-
-    return await response.json()
   } catch (error) {
     if (error instanceof TypeError && error.message.includes("URL")) {
       throw new Error("Invalid URL. Please enter a valid endpoint.")
