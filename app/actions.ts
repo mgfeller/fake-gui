@@ -5,6 +5,7 @@ export async function fetchApiData(endpoint: string, method: 'GET' | 'POST' = 'G
     // Validate the URL
     new URL(endpoint)
 
+    const wrapLog = process.env.WRAP_LOG === '1'
     const response = await fetch(endpoint, {
       method,
       headers: {
@@ -45,7 +46,7 @@ export async function fetchApiData(endpoint: string, method: 'GET' | 'POST' = 'G
         headers: headers,
         body: data
       }
-    }, null, 2))
+    }, null, wrapLog ? 2 : 0))
 
     return {
       data,
