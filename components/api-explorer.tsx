@@ -14,6 +14,7 @@ export function ApiExplorer() {
   const [baseUrl, setBaseUrl] = useState("http://localhost:8080")
   const [infoPath, setInfoPath] = useState("/info")
   const [healthcheckPath, setHealthcheckPath] = useState("/healthcheck")
+  const [upstreamPath, setUpstreamPath] = useState("/upstream")
   const [quotePath, setQuotePath] = useState("/quotes/rand")
   const [quotesPath, setQuotesPath] = useState("/quotes")
   const [unauthorizedPath, setUnauthorizedPath] = useState("/unauthorized")
@@ -52,6 +53,10 @@ export function ApiExplorer() {
 
   const handleHealthcheck = async () => {
     await handleRequest(healthcheckPath)
+  }
+
+  const handleUpstream = async () => {
+    await handleRequest(upstreamPath)
   }
 
   const handleUnauthorized = async () => {
@@ -105,6 +110,19 @@ export function ApiExplorer() {
             value={healthcheckPath}
             onChange={(e) => setHealthcheckPath(e.target.value)}
             placeholder="Enter healthcheck endpoint path"
+            className="w-1/2"
+            required
+          />
+        </div>
+        <div className="flex gap-3 items-center">
+          <Button onClick={handleUpstream} disabled={loading} className="whitespace-nowrap w-36">
+            {loading ? "Loading..." : "Upstream"}
+          </Button>
+          <Input
+            type="text"
+            value={upstreamPath}
+            onChange={(e) => setUpstreamPath(e.target.value)}
+            placeholder="Enter upstream endpoint path"
             className="w-1/2"
             required
           />
