@@ -66,10 +66,15 @@ export async function fetchApiData(endpoint: string, method: 'GET' | 'POST' = 'G
 }
 
 export async function initiateLogin() {
-  const state = crypto.randomUUID()
-  const codeVerifier = crypto.randomUUID()
+  function generateRandomString(length = 64) {
+    const array = new Uint8Array(length)
+    crypto.getRandomValues(array)
+    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('').slice(0, length)
+  }
+  const state = generateRandomString()
+  const codeVerifier = generateRandomString()
   
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   cookieStore.set('oauth_state', state, { httpOnly: true, secure: process.env.NODE_ENV === 'production' })
   cookieStore.set('code_verifier', codeVerifier, { httpOnly: true, secure: process.env.NODE_ENV === 'production' })
 
@@ -78,17 +83,22 @@ export async function initiateLogin() {
     response_type: 'code',
     scope: process.env.OIDC_SCOPES!,
     redirect_uri: process.env.OIDC_REDIRECT_URI!,
-    state,
+    state: state,
     code_challenge: codeVerifier,
     code_challenge_method: 'plain'
   })
 
-  const authUrl = `${process.env.OIDC_ISSUER}/protocol/openid-connect/auth?${params.toString()}`
+  const configResponse = await fetch(process.env.OIDC_CONFIG_URL!)
+  const config = await configResponse.json()
+  const authorizationEndpoint = config.authorization_endpoint
+  const authUrl = `${authorizationEndpoint}?${params.toString()}`
+  console.log('[Auth] Redirecting to:', authUrl)
   redirect(authUrl)
 }
 
 export async function handleCallback(code: string, state: string) {
-  const cookieStore = cookies()
+  console.log('[Auth] Handling callback with code:', code)
+  const cookieStore = await cookies()
   const storedState = cookieStore.get('oauth_state')?.value
   const codeVerifier = cookieStore.get('code_verifier')?.value
 
@@ -100,12 +110,18 @@ export async function handleCallback(code: string, state: string) {
     grant_type: 'authorization_code',
     client_id: process.env.OIDC_CLIENT_ID!,
     client_secret: process.env.OIDC_CLIENT_SECRET!,
-    code,
+    scope: process.env.OIDC_CLIENT_ID!,
+    code: code,
     redirect_uri: process.env.OIDC_REDIRECT_URI!,
     code_verifier: codeVerifier
   })
+  console.log('[Auth] Params:', params.toString())
 
-  const response = await fetch(`${process.env.OIDC_ISSUER}/protocol/openid-connect/token`, {
+  const configResponse = await fetch(process.env.OIDC_CONFIG_URL!)
+  const config = await configResponse.json()
+  const tokenEndpoint = config.token_endpoint
+
+  const response = await fetch(tokenEndpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded'
@@ -135,12 +151,10 @@ export async function handleCallback(code: string, state: string) {
   // Clear OAuth state cookies
   cookieStore.delete('oauth_state')
   cookieStore.delete('code_verifier')
-
-  redirect('/')
 }
 
 export async function logout() {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   cookieStore.delete('access_token')
   cookieStore.delete('refresh_token')
   redirect('/')

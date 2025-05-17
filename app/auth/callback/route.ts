@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
 
   try {
     await handleCallback(code, state)
-    return new Response(null, { status: 302, headers: { Location: '/' } })
+    return new Response(null, { status: 302, headers: { Location: process.env.APP_BASE_URL! } })
   } catch (error) {
     console.error('Auth callback error:', error)
     return new Response('Authentication failed', { status: 500 })

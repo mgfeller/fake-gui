@@ -10,12 +10,12 @@ export const metadata: Metadata = {
   description: 'A test application for platform features',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const headersList = headers()
+  const headersList = await headers()
   const authStatus = headersList.get('x-auth-status') || 'unauthenticated'
 
   return (
