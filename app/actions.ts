@@ -85,7 +85,8 @@ export async function initiateLogin() {
     redirect_uri: process.env.OIDC_REDIRECT_URI!,
     state: state,
     code_challenge: codeVerifier,
-    code_challenge_method: 'plain'
+    code_challenge_method: 'plain',
+    audience: process.env.OIDC_AUDIENCE!
   })
 
   const configResponse = await fetch(process.env.OIDC_CONFIG_URL!)
@@ -131,7 +132,8 @@ export async function handleCallback(code: string, state: string) {
     scope: process.env.OIDC_SCOPES!,
     code: code,
     redirect_uri: process.env.OIDC_REDIRECT_URI!,
-    code_verifier: codeVerifier
+    code_verifier: codeVerifier,
+    audience: process.env.OIDC_AUDIENCE!
   })
   console.log('[Auth] Params:', params.toString())
 
@@ -148,10 +150,15 @@ export async function handleCallback(code: string, state: string) {
   })
 
   if (!response.ok) {
+    const error = await response.text()
+    console.error('[Auth] Token exchange failed:', error)
     throw new Error('Failed to exchange code for tokens')
   }
 
   const tokens = await response.json()
+  
+  // Log the token type to verify we got a JWT
+  console.log('[Auth] Token type:', tokens.token_type)
   
   cookieStore.set('access_token', tokens.access_token, { 
     httpOnly: true, 
