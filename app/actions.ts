@@ -1,5 +1,8 @@
 "use server"
 
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
+
 export async function fetchApiData(endpoint: string, method: 'GET' | 'POST' = 'GET') {
   try {
     // Validate the URL
@@ -60,4 +63,126 @@ export async function fetchApiData(endpoint: string, method: 'GET' | 'POST' = 'G
     }
     throw error
   }
+}
+
+export async function initiateLogin() {
+  function generateRandomString(length = 64) {
+    const array = new Uint8Array(length)
+    crypto.getRandomValues(array)
+    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('').slice(0, length)
+  }
+  const state = generateRandomString()
+  const codeVerifier = generateRandomString()
+  
+  const cookieStore = await cookies()
+  cookieStore.set('oauth_state', state, { httpOnly: true, secure: process.env.NODE_ENV === 'production' })
+  cookieStore.set('code_verifier', codeVerifier, { httpOnly: true, secure: process.env.NODE_ENV === 'production' })
+
+  const params = new URLSearchParams({
+    client_id: process.env.OIDC_CLIENT_ID!,
+    response_type: 'code',
+    scope: process.env.OIDC_SCOPES!,
+    redirect_uri: process.env.OIDC_REDIRECT_URI!,
+    state: state,
+    code_challenge: codeVerifier,
+    code_challenge_method: 'plain'
+  })
+
+  const configResponse = await fetch(process.env.OIDC_CONFIG_URL!)
+  const config = await configResponse.json()
+  const authorizationEndpoint = config.authorization_endpoint
+  const authUrl = `${authorizationEndpoint}?${params.toString()}`
+  console.log('[Auth] Redirecting to:', authUrl)
+  redirect(authUrl)
+}
+
+export async function fetchUserInfo(accessToken: string) {
+  const configResponse = await fetch(process.env.OIDC_CONFIG_URL!)
+  const config = await configResponse.json()
+  const userinfoEndpoint = config.userinfo_endpoint
+
+  const response = await fetch(userinfoEndpoint, {
+    headers: {
+      'Authorization': `Bearer ${accessToken}`
+    }
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch user info')
+  }
+
+  return response.json()
+}
+
+export async function handleCallback(code: string, state: string) {
+  console.log('[Auth] Handling callback with code:', code)
+  const cookieStore = await cookies()
+  const storedState = cookieStore.get('oauth_state')?.value
+  const codeVerifier = cookieStore.get('code_verifier')?.value
+
+  if (!storedState || !codeVerifier || state !== storedState) {
+    throw new Error('Invalid state parameter')
+  }
+
+  const params = new URLSearchParams({
+    grant_type: 'authorization_code',
+    client_id: process.env.OIDC_CLIENT_ID!,
+    client_secret: process.env.OIDC_CLIENT_SECRET!,
+    scope: process.env.OIDC_SCOPES!,
+    code: code,
+    redirect_uri: process.env.OIDC_REDIRECT_URI!,
+    code_verifier: codeVerifier
+  })
+  console.log('[Auth] Params:', params.toString())
+
+  const configResponse = await fetch(process.env.OIDC_CONFIG_URL!)
+  const config = await configResponse.json()
+  const tokenEndpoint = config.token_endpoint
+
+  const response = await fetch(tokenEndpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: params.toString()
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to exchange code for tokens')
+  }
+
+  const tokens = await response.json()
+  
+  cookieStore.set('access_token', tokens.access_token, { 
+    httpOnly: true, 
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: tokens.expires_in
+  })
+  
+  if (tokens.refresh_token) {
+    cookieStore.set('refresh_token', tokens.refresh_token, { 
+      httpOnly: true, 
+      secure: process.env.NODE_ENV === 'production'
+    })
+  }
+
+  // Fetch and store user info
+  const userInfo = await fetchUserInfo(tokens.access_token)
+  cookieStore.set('user_info', JSON.stringify(userInfo), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: tokens.expires_in
+  })
+
+  // Clear OAuth state cookies
+  cookieStore.delete('oauth_state')
+  cookieStore.delete('code_verifier')
+}
+
+export async function logout() {
+  const cookieStore = await cookies()
+  cookieStore.delete('access_token')
+  cookieStore.delete('refresh_token')
+  cookieStore.delete('user_info')
+  redirect('/')
 }
