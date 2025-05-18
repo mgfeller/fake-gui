@@ -17,11 +17,13 @@ export default async function RootLayout({
 }) {
   const headersList = await headers()
   const authStatus = headersList.get('x-auth-status') || 'unauthenticated'
+  const userInfo = headersList.get('x-user-info')
 
   return (
     <html lang="en">
       <head>
         <meta name="auth-status" content={authStatus} />
+        {userInfo && <meta name="user-info" content={userInfo} />}
       </head>
       <body className={inter.className}>{children}</body>
     </html>

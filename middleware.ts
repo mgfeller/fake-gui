@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
   const accessToken = request.cookies.get('access_token')
+  const userInfo = request.cookies.get('user_info')
   const isAuthCallback = request.nextUrl.pathname === '/auth/callback'
 
   // Allow access to auth callback route
@@ -13,6 +14,10 @@ export function middleware(request: NextRequest) {
   // Add authentication status to response headers
   const response = NextResponse.next()
   response.headers.set('x-auth-status', accessToken ? 'authenticated' : 'unauthenticated')
+  
+  if (userInfo) {
+    response.headers.set('x-user-info', userInfo.value)
+  }
   
   return response
 }

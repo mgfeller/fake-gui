@@ -1,5 +1,6 @@
 import { ApiExplorer } from "@/components/api-explorer"
 import { LoginButton } from "@/components/login-button"
+import { UserInfo } from "@/components/user-info"
 
 export default function Home() {
   return (
@@ -8,7 +9,12 @@ export default function Home() {
         <h1 className="text-3xl font-bold">Fake GUI - Platform Test App</h1>
         <LoginButton />
       </div>
-      <ApiExplorer />
+      <div className="grid grid-cols-[1fr,500px] gap-6">
+        <ApiExplorer />
+        <div className="sticky top-6">
+          <UserInfo />
+        </div>
+      </div>
     </main>
   )
 }
