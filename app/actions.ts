@@ -9,17 +9,30 @@ export async function fetchApiData(endpoint: string, method: 'GET' | 'POST' = 'G
     new URL(endpoint)
 
     const wrapLog = process.env.WRAP_LOG === '1'
+    
+    // Get access token from cookies
+    const cookieStore = await cookies()
+    const accessToken = cookieStore.get('access_token')?.value
+
+    // Prepare headers
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    }
+
+    // Add Authorization header if access token exists
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`
+    }
+
     const response = await fetch(endpoint, {
       method,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
     })
     
     // Convert headers to a plain object
-    const headers: Record<string, string> = {}
+    const responseHeaders: Record<string, string> = {}
     response.headers.forEach((value, key) => {
-      headers[key] = value
+      responseHeaders[key] = value
     })
 
     // Try to parse JSON, but handle cases where there is no body
@@ -40,13 +53,11 @@ export async function fetchApiData(endpoint: string, method: 'GET' | 'POST' = 'G
       request: {
         url: endpoint,
         method: method,
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        headers: headers
       },
       response: {
         status: response.status,
-        headers: headers,
+        headers: responseHeaders,
         body: data
       }
     }, null, wrapLog ? 2 : 0))
@@ -54,7 +65,7 @@ export async function fetchApiData(endpoint: string, method: 'GET' | 'POST' = 'G
     return {
       data,
       status: response.status,
-      headers
+      headers: responseHeaders
     }
   } catch (error) {
     console.error('[Error]', error)
